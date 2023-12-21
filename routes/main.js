@@ -11,4 +11,6 @@ router.post('/',mainController.postBook)
 
 router.get('/returnEntry/:id',mainController.retunEntry);
 
+router.get('/updatedFine',mainController.updateFine);
+
 module.exports = router;

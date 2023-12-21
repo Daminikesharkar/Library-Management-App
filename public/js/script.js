@@ -45,8 +45,7 @@ function addUser(userData){
     var text = document.createTextNode("Bookname: "+userData.book_name+" Issued On: "+userData.issued_on+" Return date: "+userData.return_at+" current fine "+userData.current_fine);
     li.appendChild(text);
 
-
-    btn.appendChild(document.createTextNode("Return Book"));
+    btn.appendChild(document.createTextNode("Return"));
 
     li.appendChild(btn);
 
@@ -54,25 +53,38 @@ function addUser(userData){
 }
 
 function addInput(bookData, li) {
-  
+
+    const originalContent = li.innerHTML;
+    li.innerHTML = '';
+
     var text = document.createTextNode("Pay fine: " + bookData.current_fine);
     li.appendChild(text);
-  
-    alert("Pay Fine: " + bookData.current_fine);
-  
-    handleFinePayment(bookData);
-  
-    li.remove();
-  }
-  
-  function handleFinePayment(bookData) {
+
+    var btn = document.createElement("button");
+    btn.className = "btn payfine";
+    btn.id = "pay";
+    btn.appendChild(document.createTextNode("Pay Fine"));
+
+    li.appendChild(btn);
+
+    const pay = document.getElementById('pay');
+    pay.addEventListener('click', (e) => {
+        e.preventDefault();
+        const confirmPayment = window.confirm("Pay Fine: " + bookData.current_fine);
+        if (confirmPayment) {
+            handleFinePayment(bookData);
+            li.remove();
+        } else {
+            li.innerHTML = originalContent;
+        }
+    });
+}
+
+function handleFinePayment(bookData) {
     console.log("Fine paid:", bookData.current_fine);
     bookData.current_fine = 0;
-    console.log(bookData);
     deleteData(bookData.id);
-  }
-
-
+}
 
 const ulList = document.getElementById('newentries');
 ulList.addEventListener('click',async (e)=>{
@@ -90,7 +102,15 @@ ulList.addEventListener('click',async (e)=>{
     }
 })
 
-function displayBookss(){
+
+function updateFinesForOverdueBooks(){
+    axios.get('/updatedFine')
+        .then((response)=>{
+            console.log(response);
+        })
+}
+
+function displayBooks(){
     axios.get('/books')
         .then((response)=>{
             const length = Object.keys(response.data.book).length;
@@ -103,5 +123,6 @@ function displayBookss(){
 }
 
 window.addEventListener('load',()=>{
-    displayBookss();
+    displayBooks();
+    updateFinesForOverdueBooks();
 })

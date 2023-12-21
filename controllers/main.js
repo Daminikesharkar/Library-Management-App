@@ -7,7 +7,26 @@ exports.getIndex = (req, res) => {
     res.sendFile(indexFilePath);
 };
 
+exports.updateFine = async (req,res)=>{
 
+    const currentDate = new Date();
+    const books = await Books.findAll();
+  
+    await Promise.all(
+        books.map(async (book) => {
+            if (book.return_at && new Date(book.return_at) < currentDate) {
+                const hoursLate = Math.floor((currentDate - new Date(book.return_at)) / (1000 * 60 * 60));
+                const fine = hoursLate * 10;
+
+                await Books.update(
+                    { current_fine: fine }, 
+                    { where: 
+                        { id: book.id } 
+                    });
+            }
+        })
+    );
+}
 
 exports.getBooks = (req,res)=>{
     Books.findAll()
@@ -23,7 +42,7 @@ exports.postBook = (req,res)=>{
     const book_name = req.body.bookname;
     const currentDate = new Date();
     const returnDate = new Date();
-    returnDate.setDate(currentDate.getDate() + 10);
+    returnDate.setDate(currentDate.getDate());
 
     Books.create({
         book_name: book_name,
@@ -43,17 +62,9 @@ exports.postBook = (req,res)=>{
 };
 
 exports.retunEntry = (req,res)=>{
-    console.log("delete",req.params.id)
     Books.findByPk(req.params.id)
         .then((book)=>{
-            // console.log("innn",book)
-            // if(book.current_fine == 0){
-            //     console.log(book.current_fine)
             return book.destroy();
-            // }else{
-            //     console.log("Big Fine",book.current_fine)
-            //     res.json({book: book});
-            // }
         })
         .catch((err)=>{
             console.log(err);
